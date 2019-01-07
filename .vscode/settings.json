@@ -1,0 +1,15 @@
+{
+	"python.pythonPath": "/home/jetjokers/.pyenv/versions/3.6.3/envs/venv_vnmuare/bin/python",
+	"python.linting.enabled": false,
+	"python.unitTest.unittestArgs": [
+		"-v",
+		"-s",
+		".",
+		"-p",
+		"test_*.py"
+	],
+	"python.unitTest.pyTestEnabled": false,
+	"python.unitTest.nosetestsEnabled": false,
+	"python.unitTest.unittestEnabled": false,
+	"python.unitTest.promptToConfigure": false
+}
