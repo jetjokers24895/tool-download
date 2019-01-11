@@ -1,5 +1,5 @@
 {
-	"python.pythonPath": "/home/jetjokers/.pyenv/versions/3.6.3/envs/venv_vnmuare/bin/python",
+	"python.pythonPath": "C:\\Program Files\\Python36\\python.exe",
 	"python.linting.enabled": false,
 	"python.unitTest.unittestArgs": [
 		"-v",

@@ -70,10 +70,10 @@ def change_proxy():
 		return None
 
 def download_file(url, type_folder, folder_name):
-	proxies = change_proxy()
-	print(proxies)
-	assert proxies != None
-	print('b')
+	# proxies = change_proxy()
+	# print(proxies)
+	# assert proxies != None
+	# print('b')
 	with requests.get(url, proxies = proxies,stream=True) as r:
 		assert r.status_code == 200
 		print("a")
@@ -114,14 +114,34 @@ def get_page_downloaded():
 			rs[_type] = 1
 	return rs
 
-# print(get_page_downloaded())
-# a type has more page, a page has more url
+def download_a_cluster(cluster, __type):
+	for i in cluster:
+		download_a_url(i, __type)
+		
+
 def download_one_page(__type, number_page):
 	_url = product.base_url.format(number_page, __type)
 	_html = send_request(_url)
 	items = get_urls_img(_html)
-	for item in items:
-		download_a_url(item, __type)
+	clusters = parse_lst_urls_to_5_cluster()
+	# parse to cluster
+	for cluster in clusters:
+		download_a_cluster(cluster, __type)
+		#run file exe
+		change_ip()
+
+def get_ip(): # get public Ip
+	r = requests.get('http://ip.42.pl/raw')
+	return r.text
+
+def change_ip():
+	current_ip = get_ip()
+	new_ip = current_ip
+	#run changeIp.exe
+	os.system(env.change_network)
+	while current_ip == new_ip:
+		new_ip = get_ip()
+		time.sleep(5)
 
 def parse_lst_urls_to_5_cluster(lst_urls):
 	_divide = int(len(lst_urls)/5)
@@ -133,25 +153,70 @@ def parse_lst_urls_to_5_cluster(lst_urls):
 	rs.append(_add)
 	return rs
 
-def router():
-	last_page_downloaded = get_page_downloaded()
-	# iter type item
-	for _type in product.type_of_items:
-		number_page = last_page_downloaded.get(_type)
-		all_page = product.number_page.get(_type)
-		print("number_page", number_page)
-		print("all_page", all_page)
-		#iter page
-		while number_page < all_page:
-			# get urls
-			# run main action with url just gotten
-			try:
-				download_one_page(_type, number_page)
-			except Exception as e:
-				print("#########Exception####### router")
-				print("Cant download page {0} of type {1}".format(number_page, _type))
-			finally:
-				number_page +=1
+
+def check_new_links(__type):
+	# This function to find all new links after downloading in the past
+	# To do: example with psd file
+		# get the first link of psd (A)
+		# get urls in page until urls have the first link
+		# iter urls -> find link in urls == A -> only accept link before that
+
+	# get the first link of psd (A)
+	first_line = get_first_line(__type)
+
+	# get urls in page until urls have the first link
+	links = []
+	page = 0
+	while not first_line in links:
+    	page +=1
+		_links = get_links_one_page(__type, page)
+		links.append(_links)
+	
+	# iter urls -> find link in urls == A -> only accept link before that
+	rs = []
+	for link in links:
+    	if link == first_line:
+			break
+		rs.append(link)
+	return rs
+	
+def get_links_one_page(__type, page):
+	_url = product.base_url.format(page, __type)
+	_html = send_request(_url)
+	links = get_urls_img(_html)
+	return links
+
+def get_first_line(__type):
+    path_dir = env.downloaded_file.get(__type, None)
+	assert path_dir != None
+	path_file = "{0}{1}".format(env.logs_path_dir, path_dir)
+	with open(path_file, "r") as f:
+		first_line = f.readlines()[0].replace("\n", "")
+	return first_line
+
+#check_new_links("psd")
+
+
+
+# def router():
+# 	last_page_downloaded = get_page_downloaded()
+# 	# iter type item
+# 	for _type in product.type_of_items:
+# 		number_page = last_page_downloaded.get(_type)
+# 		all_page = product.number_page.get(_type)
+# 		print("number_page", number_page)
+# 		print("all_page", all_page)
+# 		#iter page
+# 		while number_page < all_page:
+# 			# get urls
+# 			# run main action with url just gotten
+# 			try:
+# 				download_one_page(_type, number_page)
+# 			except Exception as e:
+# 				print("#########Exception####### router")
+# 				print("Cant download page {0} of type {1}".format(number_page, _type))
+# 			finally:
+# 				number_page +=1
 
 #download_one_page('psd', 1)
 
