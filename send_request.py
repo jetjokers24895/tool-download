@@ -153,7 +153,7 @@ def router():
 			finally:
 				number_page +=1
 
-download_one_page('psd', 1)
+#download_one_page('psd', 1)
 
 #test 	parse_lst_urls_to_5_cluster
 # ints = [i for i in range(1, 38)]

@@ -26,6 +26,7 @@ class env:
 		'vectores': 'downloaded_vectores.txt',
 		'psd': 'downloaded_psd.txt'
 	}
+	change_network = "C:/Windows/System32/notepad.exe"
 
 class test:
 	photo = "https://www.freepik.com/free-photo/golden-silver-christmas-deco-on-black_3239044.htm"
