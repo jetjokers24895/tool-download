@@ -1,4 +1,4 @@
-import send_request.py as api
+import send_request as api
 from  var import product
 
 #api.get_urls_img()
