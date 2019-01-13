@@ -9,17 +9,11 @@ from lxml.html import document_fromstring
 
 from var import dev, env, product, test
 
+page_downloading = 0
 
 def write_to_html(text):
     with open("html.txt", "w") as w:
         w.write(text)
-
-
-def write_downloaded_line(_type, link):
-    name_file = env.downloaded_file.get(_type, None)
-    path_file = env.logs_path_dir + name_file
-    with open(path_file, "a+") as f:
-        f.write('\n' + link)
 
 
 def read_html_file():
@@ -79,6 +73,14 @@ def change_proxy():
         return None
 
 
+def write_fail_link(__type, url):
+    path_dir = env.downloaded_file.get(__type, None)
+    assert path_dir != None
+    file_dir = "{0}{1}".format(env.logs_path_dir, path_dir)
+    with open(file_dir, "a+") as f:
+        f.write(url + "\n")
+
+
 def download_file(url, type_folder, folder_name):
     # proxies = change_proxy()
     # print(proxies)
@@ -104,28 +106,41 @@ def download_a_url(url, type_folder):
         print("downloading {0}".format(url_to_download))
         download_file(url_to_download, type_folder, name_item)
         print("###Downloaded: {0}_{1}".format(name_item, id_item))
-        write_downloaded_line(type_folder, url_to_download)
+        write_downloaded_line(page_downloading, url_to_download, type_folder)
     except Exception as e:
         print("#######EXCEPTION########### download_a_url")
         print(e)
         time.sleep(2)
-        # download_a_url(url, type_folder)
+        # write_fail_link(type_folder, url)
+        change_ip()
+        download_a_url(url, type_folder)
 
 
-def get_page_downloaded():
-    rs = {}
-    types = product.type_of_items
-    for _type in types:
-        _path_to_open = "{0}number-page-{1}.txt".format(
-            env.logs_path_dir, _type)
-        try:
-            with open(_path_to_open, 'r') as f:
-                rs[_type] = f.read()
-        except Exception as e:
-            print(_path_to_open + " khong ton tai")
-            print(e)
-            rs[_type] = 1
-    return rs
+def get_page_downloaded(_type):
+    _path_dir = env.downloaded_file.get("_type", None)
+    assert _path_dir != None
+
+    _path_to_open = "{0}{1}.txt".format(env.download_dir, _path_dir)
+    try:
+        with open(_path_to_open, 'r') as f:
+            return f.read() #return  "page-url"
+    except Exception as e:
+        # if file doesnt exist, create file -> write 0 -> return 0
+        print(_path_to_open + " khong ton tai")
+        print(e)
+        print("#######Creating#######")
+        with open(_path_to_open, "a+") as w:
+            w.write(0)
+        return 0
+
+def write_downloaded_line(page, url, __type):
+    _text = "{0}-{1}".format(page, url)
+    path_dir = env.downloaded_file.get(__type, None)
+    assert path_dir != None
+
+    path_file = "{0}{1}".format(env.download_dir, path_dir)
+    with open(path_file, "w+") as w:
+        w.write(_text)
 
 
 def download_a_cluster(cluster, __type):
@@ -133,8 +148,9 @@ def download_a_cluster(cluster, __type):
         download_a_url(i, __type)
 
 
-def download_one_page(__type, number_page):
-    _url = product.base_url.format(number_page, __type)
+def download_one_page(number_page, __type):
+    page_downloading = number_page
+    _url = product.base_url.format(__type, number_page)
     print(_url)
     _html = send_request(_url)
     items = get_urls_img(_html)
@@ -144,7 +160,6 @@ def download_one_page(__type, number_page):
         download_a_cluster(cluster, __type)
         # run file exe
         change_ip()
-        break
 
 
 def get_ip():  # get public Ip

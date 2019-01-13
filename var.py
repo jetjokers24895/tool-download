@@ -23,14 +23,20 @@ class dev:
 
 
 class env:
+    test = False
     base_url_download = "https://download.freepik.com/{0}?lang=en"
     logs_path_dir = './logs/'
+
+    download_dir= './download/'
     downloaded_file = {
-        'fotos': 'downloaded_fotos.txt',
-        'vectores': 'downloaded_vectores.txt',
-        'psd': 'downloaded_psd.txt'
+        'fotos': 'fotos/downloaded_fotos.txt',
+        'vectores': 'vectores/downloaded_vectores.txt',
+        'psd': 'psd/downloaded_psd.txt'
     }
+
     change_network = "{0}/change_ip.exe".format(os.getcwd())
+    
+
 
 
 class test:
