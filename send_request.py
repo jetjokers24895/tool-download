@@ -9,7 +9,7 @@ from lxml.html import document_fromstring
 
 from var import dev, env, product, test
 
-page_downloading = 0
+page_downloading = 1
 
 def write_to_html(text):
     with open("html.txt", "w") as w:
@@ -53,7 +53,7 @@ def get_urls_img(html):
         assert len(img_div) > 0
         _rs.append(img_div[0].find('a').get('href'))
     print(_rs)
-    return _rs
+    return sorted(_rs)
 
 
 def change_proxy():
@@ -117,10 +117,10 @@ def download_a_url(url, type_folder):
 
 
 def get_page_downloaded(_type):
-    _path_dir = env.downloaded_file.get("_type", None)
+    _path_dir = env.downloaded_file.get(_type, None)
     assert _path_dir != None
 
-    _path_to_open = "{0}{1}.txt".format(env.download_dir, _path_dir)
+    _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
     try:
         with open(_path_to_open, 'r') as f:
             return f.read() #return  "page-url"
@@ -129,9 +129,9 @@ def get_page_downloaded(_type):
         print(_path_to_open + " khong ton tai")
         print(e)
         print("#######Creating#######")
-        with open(_path_to_open, "a+") as w:
-            w.write(0)
-        return 0
+        with open(_path_to_open, "w") as w:
+            w.write("1")
+        return 1
 
 def write_downloaded_line(page, url, __type):
     _text = "{0}-{1}".format(page, url)
@@ -139,7 +139,7 @@ def write_downloaded_line(page, url, __type):
     assert path_dir != None
 
     path_file = "{0}{1}".format(env.download_dir, path_dir)
-    with open(path_file, "w+") as w:
+    with open(path_file, "w") as w:
         w.write(_text)
 
 
@@ -150,10 +150,22 @@ def download_a_cluster(cluster, __type):
 
 def download_one_page(number_page, __type):
     page_downloading = number_page
-    _url = product.base_url.format(__type, number_page)
+    _url = product.base_url.format(number_page, __type)
     print(_url)
     _html = send_request(_url)
     items = get_urls_img(_html)
+
+    # check urls have not downloaded yet
+    
+    __info_downloaded = get_page_downloaded(__type).split("-")
+    if len(__info_downloaded) == 2:
+        #assert len(__info_downloaded) == 2
+        __page_downloaded = __info_downloaded[0]
+        __url = __info_downloaded[1]
+        if number_page == int(__page_downloaded):
+            _index = items.index(__url)
+            items = items[_index : ]
+
     clusters = parse_lst_urls_to_5_cluster(items)
     # parse to cluster
     for cluster in clusters:
