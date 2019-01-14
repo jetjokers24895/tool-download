@@ -9,7 +9,6 @@ from lxml.html import document_fromstring
 
 from var import dev, env, product, test
 
-page_downloading = 1
 
 def write_to_html(text):
     with open("html.txt", "w") as w:
@@ -92,7 +91,7 @@ def download_file(url, type_folder, folder_name):
         z.extractall('./download/{0}/{1}'.format(type_folder, folder_name))
 
 
-def download_a_url(url, type_folder):
+def download_a_url(url, type_folder, page_downloading):
     # get name of item
     name_item = get_name_of_item(url)
     assert name_item != None
@@ -106,14 +105,14 @@ def download_a_url(url, type_folder):
         print("downloading {0}".format(url_to_download))
         download_file(url_to_download, type_folder, name_item)
         print("###Downloaded: {0}_{1}".format(name_item, id_item))
-        write_downloaded_line(page_downloading, url_to_download, type_folder)
+        write_downloaded_line(page_downloading, url, type_folder)
     except Exception as e:
         print("#######EXCEPTION########### download_a_url")
         print(e)
         time.sleep(2)
         # write_fail_link(type_folder, url)
         change_ip()
-        download_a_url(url, type_folder)
+        download_a_url(url, type_folder, page_downloading)
 
 
 def get_page_downloaded(_type):
@@ -143,9 +142,9 @@ def write_downloaded_line(page, url, __type):
         w.write(_text)
 
 
-def download_a_cluster(cluster, __type):
+def download_a_cluster(cluster, __type, page_downloading):
     for i in cluster:
-        download_a_url(i, __type)
+        download_a_url(i, __type, page_downloading)
 
 
 def download_one_page(number_page, __type):
@@ -164,12 +163,12 @@ def download_one_page(number_page, __type):
         __url = __info_downloaded[1]
         if number_page == int(__page_downloaded):
             _index = items.index(__url)
-            items = items[_index : ]
+            items = items[_index + 1 : ]
 
     clusters = parse_lst_urls_to_5_cluster(items)
     # parse to cluster
     for cluster in clusters:
-        download_a_cluster(cluster, __type)
+        download_a_cluster(cluster, __type, page_downloading)
         # run file exe
         change_ip()
 
