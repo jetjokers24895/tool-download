@@ -20,6 +20,22 @@ def download_vectores():
         api.download_one_page(page, __type)
 
 
+def download_vectores_v2(page):
+    number_page = product.number_page.get(__type, None)
+    assert number_page != None
+
+    if page > number_page:
+        return
+
+    __info = read_page_downloaded()
+    __page = int(__info["page"])
+    __url = __info["url"]
+
+    if page < __page:
+        return
+    api.download_one_page(page, __type)
+
+
 def read_page_downloaded():
     path_download_dir = env.download_dir
     path_file = env.downloaded_file.get(__type, None)
@@ -30,7 +46,7 @@ def read_page_downloaded():
     if _text == 1 or _text == "1":
         return {"page": 1, "url": ""}
 
-    _info = _text.split("-")
+    _info = _text.split("__")
     return {"page": _info[0], "url": _info[1]}
 
 
@@ -40,8 +56,8 @@ def get_page(path_to_open):
         with open(path_to_open, 'r') as f:
             _text = f.read()
             if not _text:
-                return 1  
-            return _text # return  "page-url"
+                return 1
+            return _text  # return  "page-url"
     except Exception as e:
         # if file doesnt exist, create file -> write 0 -> return 0
         print(path_to_open + " khong ton tai")

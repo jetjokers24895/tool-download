@@ -15,11 +15,14 @@ def write_to_html(text):
         w.write(text)
 
 
-def write_downloaded_line(_type, link):
-    name_file = env.downloaded_file.get(_type, None)
-    path_file = env.logs_path_dir + name_file
-    with open(path_file, "a+") as f:
-        f.write('\n' + link)
+def write_downloaded_line(page, url, __type):
+    _text = "{0}__{1}".format(page, url)
+    path_dir = env.downloaded_file.get(__type, None)
+    assert path_dir != None
+
+    path_file = "{0}{1}".format(env.download_dir, path_dir)
+    with open(path_file, "w") as w:
+        w.write(_text)
 
 
 def read_html_file():
@@ -98,7 +101,7 @@ def download_file(url, type_folder, folder_name):
         z.extractall('./download/{0}/{1}'.format(type_folder, folder_name))
 
 
-def download_a_url(url, type_folder):
+def download_a_url(url, type_folder, page_downloading):
     # get name of item
     name_item = get_name_of_item(url)
     assert name_item != None
@@ -112,7 +115,7 @@ def download_a_url(url, type_folder):
         print("downloading {0}".format(url_to_download))
         download_file(url_to_download, type_folder, name_item)
         print("###Downloaded: {0}_{1}".format(name_item, id_item))
-        write_downloaded_line(type_folder, url_to_download)
+        write_downloaded_line(page_downloading, url, type_folder)
     except Exception as e:
         print("#######EXCEPTION########### download_a_url")
         print(e)
@@ -121,37 +124,52 @@ def download_a_url(url, type_folder):
         download_a_url(url, type_folder)
 
 
-def get_page_downloaded():
-    rs = {}
-    types = product.type_of_items
-    for _type in types:
-        _path_to_open = "{0}number-page-{1}.txt".format(
-            env.logs_path_dir, _type)
-        try:
-            with open(_path_to_open, 'r') as f:
-                rs[_type] = f.read()
-        except Exception as e:
-            print(_path_to_open + " khong ton tai")
-            print(e)
-            rs[_type] = 1
-    return rs
+def get_page_downloaded(_type):
+    _path_dir = env.downloaded_file.get(_type, None)
+    assert _path_dir != None
+
+    _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
+    try:
+        with open(_path_to_open, 'r') as f:
+            return f.read() #return  "page-url"
+    except Exception as e:
+        # if file doesnt exist, create file -> write 0 -> return 0
+        print(_path_to_open + " khong ton tai")
+        print(e)
+        print("#######Creating#######")
+        with open(_path_to_open, "w") as w:
+            w.write("1")
+        return 1
 
 
-def download_a_cluster(cluster, __type):
+def download_a_cluster(cluster, __type, page_downloading):
     for i in cluster:
-        download_a_url(i, __type)
+        download_a_url(i, __type, page_downloading)
 
 
 def download_one_page(number_page, __type):
-    print("##############RUN TEST############")
+    page_downloading = number_page
     _url = product.base_url.format(number_page, __type)
     print(_url)
     _html = send_request(_url)
     items = get_urls_img(_html)
+
+    # check urls have not downloaded yet
+    
+    __info_downloaded = get_page_downloaded(__type).split("__")
+    if len(__info_downloaded) == 2:
+        #assert len(__info_downloaded) == 2
+        __page_downloaded = __info_downloaded[0]
+        __url = __info_downloaded[1]
+        if number_page == int(__page_downloaded):
+            print("####run#####")
+            _index = items.index(__url)
+            items = items[_index + 1:]
+
     clusters = parse_lst_urls_to_5_cluster(items)
     # parse to cluster
     for cluster in clusters:
-        download_a_cluster(cluster, __type)
+        download_a_cluster(cluster, __type, page_downloading)
         # run file exe
         change_ip()
 

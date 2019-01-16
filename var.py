@@ -1,6 +1,7 @@
 import os
 
 
+
 class product:
 
     base_url = "https://www.freepik.com/index.php?goto=8&populares=1&page={0}&type={1}"
@@ -23,20 +24,19 @@ class dev:
 
 
 class env:
+    WORKING_DIR = os.getcwd()
     test = False
     base_url_download = "https://download.freepik.com/{0}?lang=en"
-    logs_path_dir = './logs/'
+    logs_path_dir = '{0}/logs/'.format(WORKING_DIR)
 
-    download_dir= './download/'
+    download_dir = '{0}/download/'.format(WORKING_DIR)
     downloaded_file = {
         'fotos': 'fotos/downloaded_fotos.txt',
         'vectores': 'vectores/downloaded_vectores.txt',
         'psd': 'psd/downloaded_psd.txt'
     }
 
-    change_network = "{0}/change_ip.exe".format(os.getcwd())
-    
-
+    change_network = "{0}/change_ip.exe".format(WORKING_DIR)
 
 
 class test:

@@ -3,6 +3,8 @@ import re
 import zipfile
 import time
 import os
+from datetime import datetime
+
 
 import requests
 from lxml.html import document_fromstring
@@ -122,7 +124,7 @@ def get_page_downloaded(_type):
     _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
     try:
         with open(_path_to_open, 'r') as f:
-            return f.read() #return  "page-url"
+            return f.read()  # return  "page-url"
     except Exception as e:
         # if file doesnt exist, create file -> write 0 -> return 0
         print(_path_to_open + " khong ton tai")
@@ -132,8 +134,9 @@ def get_page_downloaded(_type):
             w.write("1")
         return 1
 
+
 def write_downloaded_line(page, url, __type):
-    _text = "{0}-{1}".format(page, url)
+    _text = "{0}__{1}".format(page, url)
     path_dir = env.downloaded_file.get(__type, None)
     assert path_dir != None
 
@@ -155,15 +158,15 @@ def download_one_page(number_page, __type):
     items = get_urls_img(_html)
 
     # check urls have not downloaded yet
-    
-    __info_downloaded = get_page_downloaded(__type).split("-")
+
+    __info_downloaded = get_page_downloaded(__type).split("__")
     if len(__info_downloaded) == 2:
         #assert len(__info_downloaded) == 2
         __page_downloaded = __info_downloaded[0]
         __url = __info_downloaded[1]
         if number_page == int(__page_downloaded):
             _index = items.index(__url)
-            items = items[_index + 1 : ]
+            items = items[_index + 1:]
 
     clusters = parse_lst_urls_to_5_cluster(items)
     # parse to cluster
@@ -174,8 +177,8 @@ def download_one_page(number_page, __type):
 
 
 def get_ip():  # get public Ip
-    r = requests.get('http://ip.42.pl/raw')
-    return r.text
+    with requests.get('http://ip.42.pl/raw') as r:
+        return r.text
 
 
 def change_ip():
@@ -183,9 +186,26 @@ def change_ip():
     new_ip = current_ip
     # run changeIp.exe
     os.system(env.change_network)
+    start_time = datetime.now()
+    wait_change_ip(current_ip, new_ip, start_time)
+
+
+def wait_change_ip(current_ip, new_ip, since):
     while current_ip == new_ip:
-        new_ip = get_ip()
-        time.sleep(5)
+        try:
+            time.sleep(15)
+            endtime = datetime.now()
+            duration = endtime - since
+            new_ip = get_ip()
+
+            if duration.seconds > 120:
+               change_ip()
+
+        except Exception as e:
+            print("######EXCEPTION#######")
+            print(e)
+            wait_change_ip(current_ip, new_ip, since)
+    print("#######change_ip###########")
 
 
 def parse_lst_urls_to_5_cluster(lst_urls):
