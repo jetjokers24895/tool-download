@@ -1,10 +1,9 @@
 import io
-import re
-import zipfile
-import time
 import os
+import re
+import time
+import zipfile
 from datetime import datetime
-
 
 import requests
 from lxml.html import document_fromstring
@@ -107,6 +106,7 @@ def download_a_url(url, type_folder, page_downloading):
         print("downloading {0}".format(url_to_download))
         download_file(url_to_download, type_folder, name_item)
         print("###Downloaded: {0}_{1}".format(name_item, id_item))
+        write_downloaded_line(page_downloading, url, type_folder)
         write_downloaded_line_dock(page_downloading, url, type_folder)
     except Exception as e:
         print("#######EXCEPTION########### download_a_url")
@@ -117,31 +117,14 @@ def download_a_url(url, type_folder, page_downloading):
         download_a_url(url, type_folder, page_downloading)
 
 
-def get_page_downloaded(_type):
-    _path_dir = env.download_dock.get(_type, None)
+def write_downloaded_line(page, url, __type):
+    _path_dir = env.downloaded_file.get(__type, None)
     assert _path_dir != None
 
-    _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
-    try:
-        with open(_path_to_open, 'r') as f:
-            return f.read()  # return  "page-url"
-    except Exception as e:
-        # if file doesnt exist, create file -> write 0 -> return 0
-        print(_path_to_open + " khong ton tai")
-        print(e)
-        print("#######Creating#######")
-        with open(_path_to_open, "w") as w:
-            w.write("1")
-        return 1
+    _path_file = "{0}{1}.txt".format(_path_dir, page)
+    with open(_path_file, "a+") as w:
+        w.write(url + '\n')
 
-
-def write_downloaded_line(page, url, __type):
-	_path_dir = env.downloaded_line.get(__type, None)
-	assert _path_dir != None
-
-	_path_file = "{0}{1}.txt".format(_path_dir, page)
-	with open(_path_file, "a+") as w:
-		w.write(url + '\n')
 
 def write_downloaded_line_dock(page, url, __type):
     _text = "{0}__{1}".format(page, url)
@@ -158,30 +141,99 @@ def download_a_cluster(cluster, __type, page_downloading):
         download_a_url(i, __type, page_downloading)
 
 
-def download_one_page(number_page, __type):
+def get_items_one_page(number_page, __type):
     page_downloading = number_page
     _url = product.base_url.format(number_page, __type)
     print(_url)
     _html = send_request(_url)
     items = get_urls_img(_html)
+    return items
+
+
+def download_one_page(number_page, __type):
+    items = get_items_one_page(number_page, __type)
 
     # check urls have not downloaded yet
-
-    __info_downloaded = get_page_downloaded(__type).split("__")
-    if len(__info_downloaded) == 2:
-        #assert len(__info_downloaded) == 2
-        __page_downloaded = __info_downloaded[0]
-        __url = __info_downloaded[1]
-        if number_page == int(__page_downloaded):
-            _index = items.index(__url)
-            items = items[_index + 1:]
+    items = get_download_dock(__type, items, number_page)
 
     clusters = parse_lst_urls_to_5_cluster(items)
     # parse to cluster
     for cluster in clusters:
-        download_a_cluster(cluster, __type, page_downloading)
+        download_a_cluster(cluster, __type, number_page)
         # run file exe
         change_ip()
+
+
+def get_info_downloaded(_type, property):
+    _path_dir = env.download_dock.get(_type, None)
+    assert _path_dir != None
+
+    _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
+    try:
+        with open(_path_to_open, 'r') as f:
+            __info_downloaded = f.read().split("__")  # return  "page-url"
+            __page_downloaded = int(__info_downloaded[0])
+            __url = __info_downloaded[1]
+            return {"page": __page_downloaded, "url": __url}.get(property, None)
+
+    except Exception as e:
+        # if file doesnt exist, create file -> write 0 -> return 0
+        print(_path_to_open + " khong ton tai")
+        print(e)
+        print("#######Creating#######")
+        with open(_path_to_open, "w") as w:
+            w.write("1")
+        return 1
+
+
+def get_download_dock(__type, items, number_page):
+    __page_downloaded = get_info_downloaded(__type, "page")
+    __url = get_info_downloaded(__type, "url")
+
+    if __url == 1:
+        return items
+
+    assert __page_downloaded != None and __url != None
+
+    if number_page == __page_downloaded:
+        try:
+            _index = items.index(__url)
+            items = items[_index + 1:]
+        except ValueError as e:
+            print("#########EXCEPTION#### get_download_dock")
+            print(e)
+            items = get_download_dock_in_exception_case(
+                __url, __page_downloaded, __type)
+
+    return items
+
+
+def find_a_item(url, last_working_page, __type):
+    _page = last_working_page
+
+    _page_downloaded = get_info_downloaded(__type, "page")
+    assert _page_downloaded != None
+
+    # If the item is deleted, tool will download  next page
+    if _page - _page_downloaded == 2:
+        return get_items_one_page(_page_downloaded + 1, __type)
+
+    _items = get_items_one_page(last_working_page, __type)
+    if _items.count(url) == 0:
+        find_a_item(url, _page + 1)  # de quy
+
+    return items
+
+
+def get_download_dock_in_exception_case(url, last_working_page, __type):
+    items = find_a_item(url, last_working_page, __type)
+    try:
+        _index = items.index(url)
+        return items[_index + 1:]
+    except Exception as e:
+        print("#############EXCEPTION###### get_download_dock_in_exception_case")
+        print(e)
+        return items
 
 
 def get_ip():  # get public Ip
@@ -207,13 +259,13 @@ def wait_change_ip(current_ip, new_ip, since):
             new_ip = get_ip()
 
             if duration.seconds > 120:
-               change_ip()
+                change_ip()
 
         except Exception as e:
-            print("######EXCEPTION#######")
+            print("######EXCEPTION####### wait_change_ip")
             print(e)
             wait_change_ip(current_ip, new_ip, since)
-    print("#######change_ip###########")
+    print("#######changed_ip###########")
 
 
 def parse_lst_urls_to_5_cluster(lst_urls):
@@ -268,38 +320,6 @@ def get_first_line(__type):
     with open(path_file, "r") as f:
         first_line = f.readlines()[0].replace("\n", "")
     return first_line
-
-# check_new_links("psd")
-
-
-# def router():
-# 	last_page_downloaded = get_page_downloaded()
-# 	# iter type item
-# 	for _type in product.type_of_items:
-# 		number_page = last_page_downloaded.get(_type)
-# 		all_page = product.number_page.get(_type)
-# 		print("number_page", number_page)
-# 		print("all_page", all_page)
-# 		#iter page
-# 		while number_page < all_page:
-# 			# get urls
-# 			# run main action with url just gotten
-# 			try:
-# 				download_one_page(_type, number_page)
-# 			except Exception as e:
-# 				print("#########Exception####### router")
-# 				print("Cant download page {0} of type {1}".format(number_page, _type))
-# 			finally:
-# 				number_page +=1
-
-#download_one_page('psd', 1)
-
-# test 	parse_lst_urls_to_5_cluster
-# ints = [i for i in range(1, 38)]
-# print(ints)
-# print(parse_lst_urls_to_5_cluster(ints))
-
-# main_action(test.photo)
 
 # html = send_request(dev.url)
 # write_to_html(html)

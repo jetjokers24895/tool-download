@@ -31,10 +31,10 @@ class env:
 
     download_dir = '{0}/download/'.format(WORKING_DIR)
     downloaded_file = {
-        'fotos': 'fotos/page/',
-        'vectores': 'vectores/',
-        'psd': 'psd/page/'
-    },
+        'fotos': '{0}fotos/page/'.format(download_dir),
+        'vectores': '{0}vectores/page'.format(download_dir),
+        'psd': '{0}psd/page/'.format(download_dir)
+    }
 
     download_dock= {
         'fotos': 'fotos/dock_fotos.txt',
