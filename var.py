@@ -31,9 +31,15 @@ class env:
 
     download_dir = '{0}/download/'.format(WORKING_DIR)
     downloaded_file = {
-        'fotos': 'fotos/downloaded_fotos.txt',
-        'vectores': 'vectores/downloaded_vectores.txt',
-        'psd': 'psd/downloaded_psd.txt'
+        'fotos': 'fotos/page/',
+        'vectores': 'vectores/',
+        'psd': 'psd/page/'
+    },
+
+    download_dock= {
+        'fotos': 'fotos/dock_fotos.txt',
+        'vectores': 'vectores/dock_vectores.txt',
+        'psd': 'psd/dock_psd.txt'
     }
 
     change_network = "{0}/change_ip.exe".format(WORKING_DIR)

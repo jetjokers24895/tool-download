@@ -11,9 +11,15 @@ from var import env, product
 def check_pre():
     dirs = {
         "download": "{0}/download".format(env.WORKING_DIR),
+
         "download_fotos": "{0}/download/fotos".format(env.WORKING_DIR),
         "download_psd": "{0}/download/psd".format(env.WORKING_DIR),
-        "download_vectores": "{0}/download/vectores".format(env.WORKING_DIR)
+        "download_vectores": "{0}/download/vectores".format(env.WORKING_DIR),
+
+        "download_fotos_page": "{0}/download/fotos/page".format(env.WORKING_DIR),
+        "download_psd_page": "{0}/download/psd/page".format(env.WORKING_DIR),
+        "download_vectores_page": "{0}/download/vectores/page".format(env.WORKING_DIR),
+
     }
 
     for _dir in dirs.values():

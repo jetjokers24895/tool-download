@@ -52,7 +52,7 @@ def get_page(path_to_open):
 
 def read_page_downloaded():
     path_download_dir = env.download_dir
-    path_file = env.downloaded_file.get(__type, None)
+    path_file = env.download_dock.get(__type, None)
     assert path_file != None
 
     path_to_open = "{0}{1}".format(path_download_dir, path_file)

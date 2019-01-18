@@ -15,9 +15,9 @@ def write_to_html(text):
         w.write(text)
 
 
-def write_downloaded_line(page, url, __type):
+def write_downloaded_line_dock(page, url, __type):
     _text = "{0}__{1}".format(page, url)
-    path_dir = env.downloaded_file.get(__type, None)
+    path_dir = env.download_dock.get(__type, None)
     assert path_dir != None
 
     path_file = "{0}{1}".format(env.download_dir, path_dir)
@@ -83,7 +83,7 @@ def change_proxy():
 
 
 def write_fail_link(__type, url):
-    path_dir = env.downloaded_file.get(__type, None)
+    path_dir = env.download_dock.get(__type, None)
     assert path_dir != None
     file_dir = "{0}{1}".format(env.logs_path_dir, path_dir)
     with open(file_dir, "a+") as f:
@@ -115,7 +115,7 @@ def download_a_url(url, type_folder, page_downloading):
         print("downloading {0}".format(url_to_download))
         download_file(url_to_download, type_folder, name_item)
         print("###Downloaded: {0}_{1}".format(name_item, id_item))
-        write_downloaded_line(page_downloading, url, type_folder)
+        write_downloaded_line_dock(page_downloading, url, type_folder)
     except Exception as e:
         print("#######EXCEPTION########### download_a_url")
         print(e)
@@ -125,7 +125,7 @@ def download_a_url(url, type_folder, page_downloading):
 
 
 def get_page_downloaded(_type):
-    _path_dir = env.downloaded_file.get(_type, None)
+    _path_dir = env.download_dock.get(_type, None)
     assert _path_dir != None
 
     _path_to_open = "{0}{1}".format(env.download_dir, _path_dir)
@@ -235,7 +235,7 @@ def get_links_one_page(__type, page):
 
 
 def get_first_line(__type):
-    path_dir = env.downloaded_file.get(__type, None)
+    path_dir = env.download_dock.get(__type, None)
     assert path_dir != None
     path_file = "{0}{1}".format(env.logs_path_dir, path_dir)
     with open(path_file, "r") as f:
